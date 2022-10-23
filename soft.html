@@ -83,7 +83,7 @@
     </header>
     <details style="color: red">
       <summary>重要</summary>
-      バグについて:新しいタブ・ページ遷移後戻ってくるときに正しく表示されない可能性があります。これはキャッシュに起因するもので対処するためには動的ホスティングまたは、jsの変更を行わなければなりません。<span class="torikesi">今のところは対処の予定がないためバグが起きたら再読み込みをお願いします。</span>(復旧済みか検証中)
+      バグについて:新しいタブ・ページ遷移後戻ってくるときに正しく表示されない可能性があります。今のところは対処の予定がないためバグが起きたら再読み込みをお願いします。
     </details>
 
     <div class="mokuzi">
@@ -167,8 +167,6 @@
       const endpoint =
         "https://script.google.com/macros/s/AKfycbxKPwcDdvSJ75p2dtFmBneQAXWGo1vilJfc1FlIexkcLmA5rXUeCSOoQgWoqht3NMXM5Q/exec?text=" +
         kai;
-
-      //APIを使って非同期データを取得する
       fetch(endpoint)
         .then((response) => response.json())
         /*成功した処理*/
