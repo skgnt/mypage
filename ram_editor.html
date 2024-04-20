@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+    <title>RAM Compiler Web Editor</title>
+
+    <style>
+        /*全体のスクロールを禁止*/
+        body {
+            overflow: hidden;
+        }
+
+        .myGlyphMarginClass {
+            background-color: #ff7373;
+        }
+
+        #console {
+            background-color: #1E1E1E;
+            color: #ffffff;
+            padding: 12px;
+            height: 20%;
+
+        }
+
+        /*consoleのpタグのスタイル*/
+        #console p {
+            margin: 0;
+            /*文字の大きさ*/
+            font-size: 13px;
+            /*行間の大きさ*/
+            line-height: 1.1;
+        }
+
+        .mf {
+            border: 1px solid #000000;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="d-flex justify-content-between ">
+            <div class="fs-3">RAM Compiler Web Editor</div>
+            <div class="d-flex">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="memory_show" checked>
+                    <label class="form-check-label" for="memory_show">memory show(fast)  </label>
+                </div>
+                <div class="btn-group" role="group" aria-label="Basic outlined example">
+                    <button type="button" class="btn btn-outline-primary" onclick="ram_setting()">set</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="ram_interactive()">Interctive</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="ram_run()">Run</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main_fram row container-fluid">
+        <div class="col-10 px-0 h-100">
+            <div id="weditor" style="height: 80%;"></div>
+            <div id="console" class="w-100" style="overflow-y: scroll;"></div>
+        </div>
+        <div id="memory_table" class="col-2 px-0 h-100" style="overflow-y: auto;">
+        </div>
+    </div>
+    <template id="memory_case">
+        <div class="row">
+            <div class="mf col-3 ma">r0</div>
+            <div class="mf col-9 md">0</div>
+        </div>
+    </template>
+
+
+
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous"></script>
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-beta1/js/bootstrap.min.js"></script>
+    -->
+</body>
+
+
+
+
+<script>var require = { paths: { 'vs': "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs" } };</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs/loader.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs/editor/editor.main.nls.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs/editor/editor.main.js"></script>
+<script src="pipeline.js"></script>
+<script src="RAMCompiler.js"></script>
+
+
+
+
+
+
+<script>
+
+    var model = null;
+    var decorations=null;
+    function resize_frame() {
+        //画面の縦サイズを取得
+        let h = window.innerHeight;
+        //ヘッダーの高さを取得
+        let header = document.getElementsByClassName('header')[0].clientHeight;
+        //縦のサイズからヘッダーの高さを引いたものをmain_framの高さに指定
+        document.getElementsByClassName('main_fram')[0].style.height = (h - header) + 'px';
+    }
+
+    window.onload = function () {
+        monaco_setting();
+        resize_frame();
+        model.layout();
+
+    }
+
+
+    function monaco_setting() {
+        //エディタの設定
+        monaco.languages.register({ id: "RAMLanguage" });
+        monaco.languages.setMonarchTokensProvider("RAMLanguage", {
+            tokenizer: {
+                root: [
+                    [/^\s*LOAD/, 'keyword'],
+                    [/^\s*STORE/, 'keyword'],
+                    [/^\s*ADD/, 'keyword'],
+                    [/^\s*SUB/, 'keyword'],
+                    [/^\s*MULT/, 'keyword'],
+                    [/^\s*DIV/, 'keyword'],
+                    [/^\s*JUMP/, 'keyword'],
+                    [/^\s*JZERO/, 'keyword'],
+                    [/^\s*JGTZ/, 'keyword'],
+                    [/^\s*READ/, 'keyword'],
+                    [/^\s*WRITE/, 'keyword'],
+                    [/^\s*HALT/, 'keyword'],
+                    [/^[a-zA-Z][a-zA-Z0-9]*:/, 'tag'],
+                    [/;.*$/, 'comment'],
+                ],
+            },
+        });
+
+        monaco.editor.defineTheme('RAMTheme', {
+            base: 'vs-dark',
+            inherit: false,
+            rules: [{
+                token: 'comment',
+                //薄い緑
+                foreground: '00ff00',
+            }, {
+                token: 'keyword',
+                //うすい青
+                foreground: '00ffff',
+            },
+            {
+                token: 'tag',
+                //うすい黄色
+                foreground: 'ffff00',
+            }
+            ],
+            colors: {
+                "editor.foreground": "#ffffff",
+            }
+
+        });
+
+        monaco.languages.registerCompletionItemProvider("RAMLanguage", {
+            provideCompletionItems: function (model, position) {
+                var word = model.getWordUntilPosition(position);
+                var range = {
+                    startLineNumber: position.lineNumber,
+                    startColumn: word.startColumn,
+                    endLineNumber: position.lineNumber,
+                    endColumn: word.endColumn
+                };
+                let suggestions = [
+                    {
+                        label: "LOAD",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "LOAD",
+                        documentation: "r0にデータをコピーする"
+                    },
+                    {
+                        label: "STORE",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "STORE",
+                        documentation: "r0の内容を別の場所にコピーする"
+                    },
+                    {
+                        label: "ADD",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "ADD",
+                        documentation: "r0 ← r0 + 別のメモリ"
+                    },
+                    {
+                        label: "SUB",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "SUB",
+                        documentation: "r0 ← r0 - 別のメモリ"
+                    },
+                    {
+                        label: "MULT",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "MULT",
+                        documentation: "r0 ← r0 × 別のメモリ"
+                    },
+                    {
+                        label: "DIV",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "DIV",
+                        documentation: "r0 ← r0 / 別のメモリ"
+                    },
+                    {
+                        label: "JUMP",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "JUMP",
+                        documentation: "与えられたラベルにジャンプ"
+                    },
+                    {
+                        label: "JZERO",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "JZERO",
+                        documentation: "r0 = 0 ならば 与えられたラベルにジャンプ"
+                    },
+                    {
+                        label: "JGTZ",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "JGTZ",
+                        documentation: "r0 > 0 ならば 与えられたラベルにジャンプ"
+                    },
+                    {
+                        label: "READ",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "READ",
+                        documentation: "テープからメモリへ読み込む"
+                    },
+                    {
+                        label: "WRITE",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "WRITE",
+                        documentation: "メモリからテープ（画面）に書き出す"
+                    },
+                    {
+                        label: "HALT",
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: "HALT",
+                        documentation: "停止する"
+                    }
+
+
+
+                ]
+                return {
+                    suggestions: suggestions
+                }
+            }
+        });
+
+
+
+
+        model = monaco.editor.create(document.getElementById("weditor"), {
+            language: "RAMLanguage",
+            value: "LOAD =10\nLOAD =0",
+            theme: "RAMTheme",
+            glyphMargin: true,
+            automaticLayout: true,
+            minimap: {
+                enabled: false
+            }
+        });
+
+    }
+
+
+
+
+    //画面サイズが変わった時にもリサイズする
+    window.onresize = function () {
+        resize_frame();
+        model.layout();
+    }
+</script>
+
+</html>
