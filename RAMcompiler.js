@@ -93,14 +93,6 @@ class RAMCompiler {
     }
 
 
-
-
-
-
-
-
-
-
     interactive() {
         if (this.finish_flg) {
             this.error(this.code_step, "Code is already finished");
@@ -108,7 +100,6 @@ class RAMCompiler {
         }
         //code_stepがcodeの長さ以上の場合はエラー
         if (this.code_step >= this.code.length) {
-            //EOFに到達しました。HALTを実行するのを忘れていませんか？
             this.error(this.code_step, "EOF is reached. Did you forget to execute HALT?");
             return;
         }
@@ -226,6 +217,29 @@ class RAMCompiler {
                     this.code_step++;
                 }
                 break;
+            case "SJ":
+                //三つの引数をとり、X-YをXへ代入して，Xが0であればラベルZへJUMPする。
+                if (args.length != 3) {
+                    this.error(this.code_step, "SJ command requires 3 arguments(e.g. SJ X Y Z)");
+                }
+                let [X, Y, Z] = args;
+                //xyzの,を削除
+                X = X.replace(/,/, "");
+                Y = Y.replace(/,/, "");
+                Z = Z.replace(/,/, "");
+                console.log(this.analyzeOperand(X), this.analyzeOperand(Y))
+                this.memorySET(this.analyzeOperandAddress(X), this.analyzeOperand(X) - this.analyzeOperand(Y));
+                if (this.memoryGET(this.analyzeOperandAddress(X)) == 0) {
+                    //this.labelsにラベルがない場合はエラー
+                    if (this.labels[Z] === undefined) {
+                        this.error(this.code_step, `Label ${Z} is not found`);
+                    }
+                    this.code_step = this.labels[Z];
+                }
+                else {
+                    this.code_step++;
+                }
+                break;
             case "READ":
                 //引数をとらない。テープからメモリへ読み込む
                 this.memorySET(0, parseInt(prompt("Input number")));
@@ -243,7 +257,6 @@ class RAMCompiler {
                 this.show("--------------------");
                 return;
             default:
-                console.log("command", command)
                 if (command == "") {
                     this.code_step++;
                     return;
@@ -259,11 +272,6 @@ class RAMCompiler {
             this.interactive();
         }
     }
-
-
-
-
-
 
 
 }
