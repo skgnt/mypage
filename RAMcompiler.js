@@ -1,3 +1,24 @@
+// MIT License
+
+// Copyright (c) shinn
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 class RAMCompiler {
     constructor(code, { cmf = (memory) => {
         console.log(memory)
@@ -111,6 +132,8 @@ class RAMCompiler {
         //code_oneの末尾の空白を削除
         code_one = code_one.replace(/\s+$/, "");
         let [command, ...args] = code_one.split(" ");
+        args = args.join("").split(",")
+        console.log(args)
 
         switch (command) {
             // LOAD：r0にデータをコピーする 
@@ -222,12 +245,8 @@ class RAMCompiler {
                 if (args.length != 3) {
                     this.error(this.code_step, "SJ command requires 3 arguments(e.g. SJ X Y Z)");
                 }
+
                 let [X, Y, Z] = args;
-                //xyzの,を削除
-                X = X.replace(/,/, "");
-                Y = Y.replace(/,/, "");
-                Z = Z.replace(/,/, "");
-                console.log(this.analyzeOperand(X), this.analyzeOperand(Y))
                 this.memorySET(this.analyzeOperandAddress(X), this.analyzeOperand(X) - this.analyzeOperand(Y));
                 if (this.memoryGET(this.analyzeOperandAddress(X)) == 0) {
                     //this.labelsにラベルがない場合はエラー

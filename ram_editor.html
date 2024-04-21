@@ -1,3 +1,24 @@
+<!-- MIT License
+
+Copyright (c) shinn
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE. -->
 <!doctype html>
 <html lang="ja">
 
@@ -59,7 +80,7 @@
             <div class="d-flex">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="memory_show" checked>
-                    <label class="form-check-label" for="memory_show">memory show(fast) </label>
+                    <label class="form-check-label" for="memory_show">memory show(off=fast) </label>
                 </div>
                 <div class="btn-group" role="group" aria-label="Basic outlined example">
                     <button type="button" class="btn btn-outline-primary" onclick="ram_setting()">set</button>
@@ -183,8 +204,9 @@
         //id:create_nameのvalueを取得してdataのキーに追加する。
         //ただし、その名前がすでに存在する場合は警告を表示する
         let name = document.getElementById("create_name").value;
+        document.getElementById("create_name").value = ""; 
         if (data[name] == undefined) {
-            data[name] = model.getValue();
+            data[name] = "";
             localStorage.setItem("record", JSON.stringify(data));
             now_write = name;
         } else {
@@ -248,9 +270,6 @@
         mymodal.show();
     }
 
-    //何か書込みを行った時に未保存にする
-
-
     //ctrl+sで保存
     document.addEventListener('keydown', function (e) {
         if (e.ctrlKey && e.key === 's') {
@@ -291,6 +310,7 @@
                     [/^\s*JUMP/, 'keyword'],
                     [/^\s*JZERO/, 'keyword'],
                     [/^\s*JGTZ/, 'keyword'],
+                    [/^\s*SJ/, 'keyword'],
                     [/^\s*READ/, 'keyword'],
                     [/^\s*WRITE/, 'keyword'],
                     [/^\s*HALT/, 'keyword'],
