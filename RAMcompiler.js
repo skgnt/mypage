@@ -107,7 +107,8 @@ class RAMCompiler {
                 //一文字目を削除して、再帰的に処理
                 return this.analyzeOperandAddress(this.memoryGET(parseInt(operand.slice(1))));
             case "=":
-                return parseInt(operand.slice(1));
+                //エラー生成
+                this.error(this.code_step, "Invalid address")
             default:
                 return parseInt(operand);
         }
@@ -133,21 +134,25 @@ class RAMCompiler {
         code_one = code_one.replace(/\s+$/, "");
         let [command, ...args] = code_one.split(" ");
         args = args.join("").split(",")
-        console.log(args)
 
         switch (command) {
-            // LOAD：r0にデータをコピーする 
-            // STORE：r0の内容を別の場所にコピーする 
-            // ADD：r0 ← r0 + 別のメモリ 
-            // SUB：r0 ← r0 - 別のメモリ 
-            // MULT：r0 ← r0 × 別のメモリ 
-            // DIV：r0 ← r0 / 別のメモリ 
-            // JUMP: 与えられたラベルにジャンプ 
-            // JZERO: r0 = 0 ならば 与えられたラベルにジャンプ 
-            // JGTZ: r0 > 0 ならば 与えられたラベルにジャンプ 
-            // READ: テープからメモリへ読み込む 
-            // WRITE: メモリからテープ（画面）に書き出す 
-            // HALT: 停止する
+            // LOAD：r0にデータをコピーする(e.g. LOAD 1)
+            // STORE：r0の内容を別の場所にコピーする (e.g. STORE 1)
+            // ADD：r0 ← r0 + 別のメモリ (e.g. ADD =10)
+            // SUB：r0 ← r0 - 別のメモリ (e.g. SUB 1)
+            // MULT：r0 ← r0 × 別のメモリ (e.g. MULT 1)
+            // DIV：r0 ← r0 / 別のメモリ (e.g. DIV 10)
+            // JUMP: 与えられたラベルにジャンプ (e.g. JUMP label)
+            // JZERO: r0 = 0 ならば 与えられたラベルにジャンプ (e.g. JZERO label)
+            // JGTZ: r0 > 0 ならば 与えられたラベルにジャンプ (e.g. JGTZ label)
+            // READ: テープからメモリへ読み込む (e.g. READ)
+            // WRITE: メモリからテープ（画面）に書き出す (e.g. WRITE 0)
+            // HALT: 停止する(e.g. HALT)
+            //アドレスのアクセス方法
+            //*num: num番地の値のアドレスを指定
+            //num: num番地を指定
+            //=num: numを直接指定
+            //ラベルはlabel:の形式で指定
             case "LOAD":
                 //argsが2つ以上ある場合はエラー
                 if (args.length != 1) {
@@ -243,11 +248,18 @@ class RAMCompiler {
             case "SJ":
                 //三つの引数をとり、X-YをXへ代入して，Xが0であればラベルZへJUMPする。
                 if (args.length != 3) {
-                    this.error(this.code_step, "SJ command requires 3 arguments(e.g. SJ X Y Z)");
+                    this.error(this.code_step, "SJ command requires 3 arguments(e.g. SJ X,Y,Z)");
                 }
 
                 let [X, Y, Z] = args;
-                this.memorySET(this.analyzeOperandAddress(X), this.analyzeOperand(X) - this.analyzeOperand(Y));
+                //XとYが同じならX番地に0を代入
+                if (X == Y) {
+                    this.memorySET(this.analyzeOperandAddress(X), 0);
+                }
+                else {
+                    this.memorySET(this.analyzeOperandAddress(X), this.analyzeOperand(X) - this.analyzeOperand(Y));
+                }
+    
                 if (this.memoryGET(this.analyzeOperandAddress(X)) == 0) {
                     //this.labelsにラベルがない場合はエラー
                     if (this.labels[Z] === undefined) {
