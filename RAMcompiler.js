@@ -272,8 +272,13 @@ class RAMCompiler {
                 }
                 break;
             case "READ":
-                //引数をとらない。テープからメモリへ読み込む
-                this.memorySET(0, parseInt(prompt("Input number")));
+
+                //一つの引数をとる。テープからメモリへ読み込む
+                //promptで入力を受け取る
+                if (args.length != 1) {
+                    this.error(this.code_step, "READ command requires 1 argument(e.g. READ 1)");
+                }
+                this.memorySET(this.analyzeOperandAddress(args[0]), parseInt(prompt("Input number")));
                 this.code_step++;
                 break;
             case "WRITE":
@@ -303,6 +308,4 @@ class RAMCompiler {
             this.interactive();
         }
     }
-
-
 }
