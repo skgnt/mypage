@@ -21,6 +21,19 @@
 // SOFTWARE.
 var ram_class;
 
+
+var stop_flg = false;
+
+var t=10
+
+//クエリを解析して、t=numで指定された場合はtを変更
+var searchParams = new URLSearchParams(window.location.search)
+if(searchParams.has('t')){
+    t = searchParams.get('t');
+}
+
+
+
 function ram_setting() {
     memory_show=document.getElementById('memory_show').checked;
     record_data()
@@ -62,7 +75,30 @@ function ram_run() {
     if(ram_class==null){
         alert("Please initialize ram");
     }
-    ram_class.run();
+    stop_flg = false;
+    ram_run_step();
+
+}
+function ram_run_step(){
+    if(!ram_class.finish_flg && !ram_class.error_flg){
+        //ctrl+cで止める
+        if(stop_flg){
+            ram_class.error_flg=true;
+            stop_flg=false;
+            let console = document.getElementById('console');
+            console.innerHTML += `<p style="color:red;">Error: at line ${ram_class.code_step}: KeyboardInterrupt</p>`;
+            let consoleElement = document.getElementById('console');
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+            
+        }
+        if(ram_class.code_step>10000){
+            ram_class.error("Infinite loop");
+        }
+        
+        ram_interactive();
+        //10msごとにram_run_stepを呼び出す
+        var intervalId = setInterval(ram_run_step, t);
+    }
 }
 
 function ram_interactive() {
@@ -88,3 +124,11 @@ function ram_interactive() {
     ]);
     ram_class.interactive();
 }
+
+document.addEventListener('keydown', function (e) {
+    //ctrl+cで止める
+    if (e.ctrlKey && e.key === 'c') {
+        stop_flg = true;
+    }
+}
+);
