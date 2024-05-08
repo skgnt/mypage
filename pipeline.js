@@ -25,6 +25,7 @@ var ram_class;
 var stop_flg = false;
 
 var t=10
+var interval
 
 //クエリを解析して、t=numで指定された場合はtを変更
 var searchParams = new URLSearchParams(window.location.search)
@@ -81,6 +82,7 @@ function ram_run() {
 }
 function ram_run_step(){
     if(!ram_class.finish_flg && !ram_class.error_flg){
+        
         //ctrl+cで止める
         if(stop_flg){
             ram_class.error_flg=true;
@@ -94,11 +96,11 @@ function ram_run_step(){
         if(ram_class.code_step>10000){
             ram_class.error("Infinite loop");
         }
-        
         ram_interactive();
         //10msごとにram_run_stepを呼び出す
-        var intervalId = setInterval(ram_run_step, t);
+        setTimeout(ram_run_step, t);
     }
+
 }
 
 function ram_interactive() {
