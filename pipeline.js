@@ -77,7 +77,12 @@ function ram_run() {
         alert("Please initialize ram");
     }
     stop_flg = false;
-    ram_run_step();
+    if(t==0){
+        ram_class.run();
+    }
+    else{
+        ram_run_step();
+    }
 
 }
 function ram_run_step(){
