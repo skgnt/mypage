@@ -72,7 +72,7 @@ SOFTWARE. -->
         <div class="d-flex justify-content-between ">
             <div class="d-flex">
                 <div class="fs-3">RAM Compiler Web Editor</div>
-                <button type="button" class="btn btn-outline-secondary" onclick="read_data()">Open</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">Open</button>
                 <div id="record-status" class="text-success align-middle">&emsp;<i class="bi bi-check-lg"></i>保存済み</div>
                 <p id="n_record_name">record:</p>
             </div>
@@ -243,10 +243,31 @@ SOFTWARE. -->
     }
 
     function read_data() {
-        
-        //reload
-        location.reload();
+        //未保存の場合はalertを表示
 
+        if (record_flag == false) {
+            alert("未保存のデータがあります");
+            return;
+        }
+        
+        document.getElementById("create_list").innerHTML = "";
+        //全てのキーを取得
+        var keys = Object.keys(data);
+        //<button type="button" class="btn btn-primary">?</button>
+        for (let i = 0; i < keys.length; i++) {
+            var btn = document.createElement("button");
+            btn.type = "button";
+
+            btn.className = "btn btn-outline-secondary";
+            btn.innerHTML = keys[i];
+            btn.onclick = function () {
+                open_data(keys[i]);
+            };
+            document.getElementById("create_list").appendChild(btn);
+        }
+
+
+        mymodal.show();
     }
 
     //ctrl+sで保存
